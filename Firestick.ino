@@ -21,13 +21,15 @@
 *
 * CHANGES:
 * DATE        COMMENT
+* 12.03.2018  Added a debugging parameter to skip the encoder stage.
 * 29.12.2017  Finishing condition no longer requires period of inactivity.
 * 01.01.2045  Singularity renders code redundant.
 *
 */
 
-
-const boolean debugging = true; // Change to false to disable debugging
+const boolean skippingChopper = true; 	// Start with boosted energy skipping the encoder phase
+const int skippingSpeed = 4; 			// Energy increases each 'X'th of a second
+const boolean debugging = true; 		// Change to false to disable debugging
 
 /*
 / Configuration variables.
@@ -118,13 +120,15 @@ void setup()
 / 2. Update energy levels.
 / 3. Monitor activity.
 */
-
 void loop()
 {    
   new_position = 0;
   new_distance = 0;
   new_energy = 0;
   
+  if (skippingChopper == true) {
+  	skipChopperPhase();
+  }
   stageUpdate();
   
   // We either update energy according to wind...
@@ -233,6 +237,19 @@ void stageUpdate(){
     stage[0] = false;
     recently_reset = false;  
   }
+}
+
+/*
+/ skipChopperPhase
+/ A short debugging function to skip the early phases.
+*/
+void skipChopperPhase()
+{
+	if (millis() > ts + (sample_interval / skippingSpeed)) {
+		if (energy < energy_levels[4]) {
+			energy = energy + cooling_amount;
+		}
+	}
 }
 
 /*
